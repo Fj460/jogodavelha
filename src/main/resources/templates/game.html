@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="/style.css">
+    <title>WebSocket Game</title>
+    <script>
+        const roomCode = sessionStorage.getItem('roomCode');
+
+        if (!roomCode) {
+            alert("No room code found. Please go to the lobby and create or join a game.");
+            window.location.href = "/lobby";
+        }
+
+        let socket = new WebSocket("ws://" + location.host + "/ws/game");
+
+        socket.onmessage = function (event) {
+            const game = JSON.parse(event.data);
+            document.getElementById("status").innerText = game.winner
+                ? (game.winner === "D" ? "Draw!" : `${game.winner} wins!`)
+                : `${game.currentPlayer}'s turn`;
+
+            for (let i = 0; i < 3; i++)
+                for (let j = 0; j < 3; j++)
+                    document.getElementById("cell-" + i + "-" + j).innerText = game.board[i][j];
+        };
+
+        function resetGame() {
+            socket.send(JSON.stringify({ type: "reset", roomCode: roomCode }));
+        }
+
+        function move(x, y) {
+            socket.send(JSON.stringify({ type: "move", x: x, y: y, roomCode: roomCode }));
+        }
+    </script>
+</head>
+<body>
+<h1>Multiplayer Tic-Tac-Toe</h1>
+<p id="status">Waiting...</p>
+<button onclick="resetGame()">Reset Game</button>
+<table border="1">
+    <tbody>
+    <tr>
+        <td id="cell-0-0" onclick="move(0, 0)"></td>
+        <td id="cell-0-1" onclick="move(0, 1)"></td>
+        <td id="cell-0-2" onclick="move(0, 2)"></td>
+    </tr>
+    <tr>
+        <td id="cell-1-0" onclick="move(1, 0)"></td>
+        <td id="cell-1-1" onclick="move(1, 1)"></td>
+        <td id="cell-1-2" onclick="move(1, 2)"></td>
+    </tr>
+    <tr>
+        <td id="cell-2-0" onclick="move(2, 0)"></td>
+        <td id="cell-2-1" onclick="move(2, 1)"></td>
+        <td id="cell-2-2" onclick="move(2, 2)"></td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>
+

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tic Tac Toe Lobby</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        #lobby-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        input[type="text"] {
+            padding: 10px;
+            font-size: 1em;
+            width: 80%;
+            margin-bottom: 10px;
+        }
+        button {
+            margin: 5px;
+            padding: 10px 15px;
+            font-size: 1em;
+            border: none;
+            border-radius: 6px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #roomCodeDisplay {
+            margin-top: 10px;
+            font-size: 1.2em;
+            color: #333;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div id="lobby-container">
+    <h2>Multiplayer Tic Tac Toe</h2>
+
+    <button onclick="createRoom()">Create Room</button>
+    <div id="roomCodeDisplay"></div>
+
+    <hr>
+
+    <input type="text" id="joinCode" placeholder="Enter Room Code" />
+    <button onclick="joinRoom()">Join Room</button>
+</div>
+
+<script>
+    function createRoom() {
+        fetch("/room/create", { method: "POST" })
+            .then(response => response.text())
+            .then(code => {
+                sessionStorage.setItem("roomCode", code);
+                document.getElementById("roomCodeDisplay").innerText = "Room Code: " + code;
+            })
+            .catch(err => console.error("Error creating room:", err));
+    }
+
+    function joinRoom() {
+        const code = document.getElementById("joinCode").value.trim().toUpperCase();
+        if (!code) {
+            alert("Please enter a room code.");
+            return;
+        }
+
+        fetch(`/room/join/${code}`)
+            .then(response => response.json())
+            .then(isValid => {
+                if (isValid) {
+                    sessionStorage.setItem("roomCode", code);
+                    window.location.href = "/game";
+                } else {
+                    alert("Room code invalid or expired.");
+                }
+            })
+            .catch(err => {
+                console.error("Error joining room:", err);
+                alert("Something went wrong while joining the room.");
+            });
+    }
+</script>
+</body>
+</html>
+
