@@ -11,17 +11,40 @@
             window.location.href = "/lobby";
         }
 
-        let socket = new WebSocket("ws://" + location.host + "/ws/game");
+        let yourSymbol = null;
+
+        const socket = new WebSocket("ws://" + location.host + "/ws/game");
 
         socket.onmessage = function (event) {
             const game = JSON.parse(event.data);
-            document.getElementById("status").innerText = game.winner
-                ? (game.winner === "D" ? "Draw!" : `${game.winner} wins!`)
-                : `${game.currentPlayer}'s turn`;
+            yourSymbol = game.yourSymbol;
 
-            for (let i = 0; i < 3; i++)
-                for (let j = 0; j < 3; j++)
+            // Update your symbol display
+            const symbolDisplay = document.getElementById("your-symbol");
+            if (yourSymbol === "X") {
+                symbolDisplay.innerHTML = '<span style="color: blue;">You are X</span>';
+            } else if (yourSymbol === "O") {
+                symbolDisplay.innerHTML = '<span style="color: red;">You are O</span>';
+            } else {
+                symbolDisplay.innerText = "";
+            }
+
+            // Set the game status text
+            const statusText = document.getElementById("status");
+            if (game.status === "ONGOING") {
+                statusText.innerText = game.currentPlayer + " is playing";
+            } else if (game.status === "DRAW") {
+                statusText.innerText = "Draw!";
+            } else {
+                statusText.innerText = game.status + " wins!";
+            }
+
+            // Update the game board
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
                     document.getElementById("cell-" + i + "-" + j).innerText = game.board[i][j];
+                }
+            }
         };
 
         function resetGame() {
@@ -35,6 +58,7 @@
 </head>
 <body>
 <h1>Multiplayer Tic-Tac-Toe</h1>
+<div id="your-symbol"></div>
 <p id="status">Waiting...</p>
 <button onclick="resetGame()">Reset Game</button>
 <table border="1">
@@ -58,4 +82,3 @@
 </table>
 </body>
 </html>
-
