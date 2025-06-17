@@ -1,8 +1,12 @@
 # Dockerfile
+# Etapa de build
+FROM maven:3.9.5-eclipse-temurin-17 AS build
+WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+RUN mvn clean package -DskipTests
 
-FROM openjdk:17
-COPY ./target/Agentes-IA-0.0.1-SNAPSHOT.jar /tmp
-COPY src /home/app/src
-COPY pom.xml /home/app
-COPY src/main/resources/application.properties /home/app/properties
-ENTRYPOINT ["java", "-jar", "/tmp/Agentes-IA-0.0.1-SNAPSHOT.jar"]
+# Etapa de execução
+FROM eclipse-temurin:17
+COPY --from=build /app/target/Agentes-IA-0.0.1-SNAPSHOT.jar /app/app.jar
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
